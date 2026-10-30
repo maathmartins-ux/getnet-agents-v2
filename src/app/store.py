@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS tickets (
   id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, user_id TEXT NOT NULL, reason TEXT NOT NULL,
   summary TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open', answer TEXT,
   created_at REAL NOT NULL, answered_at REAL);
+CREATE TABLE IF NOT EXISTS user_memory (
+  user_id TEXT PRIMARY KEY, summary TEXT NOT NULL, updated_at REAL NOT NULL);
 CREATE TABLE IF NOT EXISTS actions (
   id TEXT PRIMARY KEY, conversation_id TEXT, user_id TEXT NOT NULL, tool TEXT NOT NULL,
   args TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', result TEXT, created_at REAL NOT NULL);
@@ -67,6 +69,18 @@ class Store:
             row = conn.execute("SELECT user_id FROM messages WHERE conversation_id = ? ORDER BY id LIMIT 1",
                                (conversation_id,)).fetchone()
         return row["user_id"] if row else None
+
+    # --- memória de longo prazo por lojista ------------------------------------------------
+    def user_summary(self, user_id: str) -> str:
+        with self._db() as conn:
+            row = conn.execute("SELECT summary FROM user_memory WHERE user_id = ?", (user_id,)).fetchone()
+        return row["summary"] if row else ""
+
+    def set_user_summary(self, user_id: str, summary: str) -> None:
+        with self._db() as conn:
+            conn.execute("INSERT INTO user_memory (user_id, summary, updated_at) VALUES (?, ?, ?) "
+                         "ON CONFLICT(user_id) DO UPDATE SET summary = excluded.summary, "
+                         "updated_at = excluded.updated_at", (user_id, summary[:1000], time.time()))
 
     # --- handoff ----------------------------------------------------------------------
     def open_ticket(self, conversation_id: str, user_id: str, reason: str, summary: str) -> dict:

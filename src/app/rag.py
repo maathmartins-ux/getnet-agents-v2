@@ -1,4 +1,4 @@
-"""Busca BM25 sobre data/*.jsonl ({id, title, url, text}) + métricas de retrieval.
+"""Busca BM25 sobre data/knowledge/*.jsonl ({id, title, url, text, ...}) + métricas de retrieval.
 
 Lexical de propósito: com dezenas de documentos, BM25 é auditável e sem dependência. A troca
 por hybrid (BM25 + embeddings) só se justifica se Recall@K/MRR do eval mostrarem perda.
@@ -13,10 +13,10 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from .config import data_dir
+from .config import knowledge_dir
 
 _STOP = set("a o os as um uma de do da dos das e é em no na para por com que como qual quais meu minha "
-            "the a an of to in on for is are what how my your can i".split())
+            "the a an of to in on for is are what how my your can i do does with get getnet".split())
 K1, B = 1.5, 0.75  # parâmetros clássicos do BM25 (Robertson); sem tuning sem eval que justifique
 TITLE_WEIGHT = 2  # título repetido 2x: termo no título indica o assunto do documento
 
@@ -86,7 +86,7 @@ def _index_for(directory: str, stamp: tuple) -> Index:
 
 
 def get_index() -> Index:
-    d = data_dir()
+    d = knowledge_dir()
     stamp = tuple((p.name, p.stat().st_mtime) for p in sorted(d.glob("*.jsonl")))  # recarrega se mudar
     return _index_for(str(d), stamp)
 

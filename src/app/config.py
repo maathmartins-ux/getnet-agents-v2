@@ -16,6 +16,14 @@ PRICES_PER_MTOK = {
 }
 
 
+def knowledge_dir() -> Path:
+    return data_dir() / "knowledge"
+
+
+def crm_dir() -> Path:
+    return data_dir() / "crm"
+
+
 def data_dir() -> Path:
     # Caminho explícito: no container o pacote não mora ao lado de data/, e um índice vazio
     # passa despercebido até o smoke test (lição do desafio de 30/10/2026).
@@ -32,15 +40,38 @@ def llm_provider() -> str:
 
 
 def agent_model() -> str:
+    # Supervisor e especialistas: decidem e redigem com fonte. effort medium (high pesa no p95).
     return os.getenv("AGENT_MODEL", "claude-sonnet-5-5")
 
 
+def fast_model() -> str:
+    # Router e guardrail classificador: classificação curta com JSON schema.
+    return os.getenv("FAST_MODEL", "claude-haiku-5-5")
+
+
 def judge_model() -> str:
-    return os.getenv("JUDGE_MODEL", "claude-sonnet-5-5")
+    # O juiz deve ser pelo menos tão capaz quanto o julgado.
+    return os.getenv("JUDGE_MODEL", "claude-opus-5-5")
 
 
-def auth_required() -> bool:
-    return os.getenv("AUTH_REQUIRED", "true").lower() == "true"
+# Esforço por modelo (output_config.effort). Declarado sempre: os padrões mudam entre modelos.
+EFFORT = {"claude-haiku-5-5": "low", "claude-sonnet-5-5": "medium", "claude-opus-5-5": "medium"}
+
+
+def effort_for(model: str) -> str:
+    return os.getenv("LLM_EFFORT") or EFFORT.get(model, "medium")
+
+
+def auth_mode() -> str:
+    # demo: aceita user_id do corpo (payload do enunciado) e marca identity_verified=false.
+    # required: identidade só do Bearer token assinado. Ver docs/adr/0002-auth-mode-demo.md.
+    mode = os.getenv("AUTH_MODE", "required").lower()
+    return mode if mode in ("demo", "required") else "required"
+
+
+def web_tools_mode() -> str:
+    # live: Open-Meteo e AwesomeAPI de verdade. off: CI/testes, sem rede (resposta honesta de indisponível).
+    return os.getenv("WEB_TOOLS", "live").lower()
 
 
 def auth_secret() -> str:

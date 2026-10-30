@@ -27,14 +27,19 @@ HERE = Path(__file__).resolve().parent
 # aponta para a pasta principal e o eval mediria o código errado.
 sys.path.insert(0, str(HERE.parent / "src"))
 CASES = HERE / "cases.jsonl"
+HELDOUT = HERE / "heldout_blind.jsonl"  # cego: commitado com a spec, antes de qualquer ajuste
+# Splits medidos mas fora do gate: gatear o cego ou os difíceis convidaria a ajustar o sistema a eles.
+UNGATED = {"heldout", "hard"}
 RESULTS = HERE / "results" / "latest.json"
 # 0.9 é o piso usual de take-home; ajuste por desafio, nunca para "fazer passar".
 GATE = float(os.getenv("EVAL_GATE", "0.9"))
 K = 3  # Recall@3: o agente usa as 3 primeiras passagens
 
 
-def load_cases(path: Path = CASES) -> list[dict]:
-    cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+def load_cases(paths: tuple[Path, ...] = (CASES, HELDOUT)) -> list[dict]:
+    cases = [json.loads(line) for path in paths if path.exists()
+             for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    path = paths[0]
     ids = [c["id"] for c in cases]
     dup = {i for i in ids if ids.count(i) > 1}
     if dup:
@@ -56,12 +61,13 @@ class Client:
 
         if self.url:
             import httpx
-            r = httpx.post(f"{self.url}/chat", json={"message": message, "conversation_id": conversation_id},
+            r = httpx.post(f"{self.url}/chat", json={"message": message, "user_id": user_id,
+                                                     "conversation_id": conversation_id},
                            headers={"Authorization": f"Bearer {issue_token(user_id)}"}, timeout=60)
             r.raise_for_status()
             return r.json()
         from app.pipeline import handle
-        return handle(ChatRequest(message=message, conversation_id=conversation_id), user_id).model_dump()
+        return handle(ChatRequest(message=message, conversation_id=conversation_id), user_id, True).model_dump()
 
 
 def score(case: dict, got: dict) -> dict[str, bool]:
@@ -94,7 +100,7 @@ def run(url: str | None = None) -> dict:
     for case in load_cases():
         t0 = time.perf_counter()
         try:
-            conv, user = None, case.get("user_id", "u1")
+            conv, user = None, case.get("user_id", "cliente1988")
             for prior in case.get("before", []):
                 conv = client.send(prior, user, conv)["conversation_id"]
             got, crash = client.send(case["message"], user, conv), None
@@ -138,8 +144,10 @@ def run(url: str | None = None) -> dict:
             "cost_usd": round(sum(r["cost_usd"] for r in items), 6),
             "crashes": sum(1 for r in items if r["crash"]),
         }
-    overall = metrics["ALL"]["intent_acc"] / 100
+    gated = [r for r in rows if r["split"] not in UNGATED]
+    overall = rate(gated, "intent") / 100 if gated else 0.0
     report = {"mode": "http" if url else "in-process", "gate": GATE, "intent_acc": overall,
+              "gated_splits": sorted({r["split"] for r in gated}), "ungated_splits": sorted(UNGATED),
               "passed": overall >= GATE and metrics["ALL"]["crashes"] == 0, "metrics": metrics, "rows": rows,
               "failures": [r for r in rows if r["crash"] or not all(r["checks"].values())]}
     RESULTS.parent.mkdir(parents=True, exist_ok=True)

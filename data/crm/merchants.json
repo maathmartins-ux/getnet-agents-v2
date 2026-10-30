@@ -1,0 +1,17 @@
+{
+  "cliente1988": {
+    "profile": {"name": "Padaria Exemplo (fictício)", "plan": "Get Smart", "segment": "alimentação", "city": "Porto Alegre"},
+    "yesterday_sales_brl": 1840.50,
+    "transactions": [
+      {"id": "TX-1", "amount_brl": 42.0, "status": "declined", "code": "51", "reason": "saldo insuficiente no cartão do comprador"},
+      {"id": "TX-2", "amount_brl": 18.5, "status": "approved", "code": "00", "reason": "aprovada"}
+    ],
+    "terminal": {"model": "Get Smart", "status": "offline", "connection": "wifi", "signal": "weak", "last_seen": "2026-10-30T08:12:00-03:00"}
+  },
+  "cliente2020": {
+    "profile": {"name": "Loja Outra (fictício)", "plan": "Get Clássica", "segment": "varejo", "city": "Recife"},
+    "yesterday_sales_brl": 99999.0,
+    "transactions": [],
+    "terminal": {"model": "Get Clássica", "status": "online", "connection": "chip", "signal": "good"}
+  }
+}
