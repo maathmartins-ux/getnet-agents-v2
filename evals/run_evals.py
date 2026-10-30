@@ -151,10 +151,29 @@ def run(url: str | None = None, out: Path | None = None) -> dict:
               "passed": overall >= GATE and metrics["ALL"]["crashes"] == 0, "metrics": metrics, "rows": rows,
               "failures": [r for r in rows if r["crash"] or not all(r["checks"].values())]}
     report["provider"] = os.getenv("LLM_PROVIDER", "offline")
+    report["retrieval"] = retrieval_metrics()
     target = out or RESULTS
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     return report
+
+
+def retrieval_metrics(path: Path = HERE / "retrieval.jsonl") -> dict | None:
+    """Recall@3 e MRR do BM25 sobre perguntas rotuladas olhando a fonte (fork A), independentes do router."""
+    if not path.exists():
+        return None
+    from app.rag import get_index, recall_at_k, reciprocal_rank
+
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    rec, rr, hit = [], [], []
+    for r in rows:
+        got = [d.id for d, _ in get_index().search(r["question"], k=K)]
+        rec.append(recall_at_k(got, r["relevant"], K))
+        rr.append(reciprocal_rank(got, r["relevant"]))
+        hit.append(bool(set(got) & set(r["relevant"])))
+    n = len(rows) or 1
+    return {"cases": len(rows), f"recall@{K}": round(sum(rec) / n, 3), "mrr": round(sum(rr) / n, 3),
+            f"hit@{K}": round(sum(hit) / n, 3), "retriever": "bm25"}
 
 
 def to_markdown(report: dict) -> str:
@@ -165,7 +184,13 @@ def to_markdown(report: dict) -> str:
         cells = ["—" if report["metrics"][s].get(k) is None else str(report["metrics"][s][k]) for s in splits]
         out.append(f"| {k} | " + " | ".join(cells) + " |")
     verdict = "PASS" if report["passed"] else "FAIL"
-    out.append(f"\nGate: intent {report['intent_acc']:.1%} (mínimo {report['gate']:.0%}) → **{verdict}**")
+    out.append(f"\nGate (splits {', '.join(report.get('gated_splits', []))}): intent {report['intent_acc']:.1%} "
+               f"(mínimo {report['gate']:.0%}) → **{verdict}**. Medidos fora do gate: "
+               f"{', '.join(report.get('ungated_splits', []))}.")
+    ret = report.get("retrieval")
+    if ret:
+        out.append(f"\nRetrieval ({ret['retriever']}, `evals/retrieval.jsonl`, {ret['cases']} perguntas): "
+                   f"Recall@3 **{ret['recall@3']}** · MRR **{ret['mrr']}** · hit@3 {ret['hit@3']}")
     return "\n".join(out)
 
 
