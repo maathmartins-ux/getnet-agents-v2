@@ -1,0 +1,30 @@
+{"id": "ret-01", "lang": "en", "question": "What's the difference between the Get Clássica and the Get Smart?", "relevant": ["getnet-net-pt-as-nossas-solucoes-pagamentos-presenciais-tpa-pagamento#0", "getnet-net-pt-as-nossas-solucoes-pagamentos-presenciais-tpa-pagamento#4", "site-getnet-com-br-todas-as-maquininhas#2"]}
+{"id": "ret-02", "lang": "en", "question": "When will the money from my sales be deposited?", "relevant": ["site-getnet-com-br-todas-as-maquininhas#1"]}
+{"id": "ret-03", "lang": "pt", "question": "Quanto custa por mês a maquininha Get Smart?", "relevant": ["site-getnet-com-br-todas-as-maquininhas#2"]}
+{"id": "ret-04", "lang": "pt", "question": "Meu celular é compatível com o Get Tap?", "relevant": ["site-getnet-com-br-get-tap#4"]}
+{"id": "ret-05", "lang": "pt", "question": "Preciso de Android para usar o celular como maquininha?", "relevant": ["site-getnet-com-br-get-tap#4", "site-getnet-com-br-get-tap#1"]}
+{"id": "ret-06", "lang": "pt", "question": "Em quanto tempo recebo um pagamento por Pix?", "relevant": ["site-getnet-com-br-pix#1"]}
+{"id": "ret-07", "lang": "pt", "question": "Quanto custa o plano básico do link de pagamento?", "relevant": ["site-getnet-com-br-link-de-pagamento#2"]}
+{"id": "ret-08", "lang": "pt", "question": "Como crio um link de pagamento no portal Minha Conta?", "relevant": ["site-getnet-com-br-link-de-pagamento#4"]}
+{"id": "ret-09", "lang": "pt", "question": "Quem pode contratar a condição especial do link de pagamento, MEI?", "relevant": ["site-getnet-com-br-link-de-pagamento#3"]}
+{"id": "ret-10", "lang": "pt", "question": "Como integrar o Get Checkout via API ou iframe?", "relevant": ["site-getnet-com-br-getcheckout#1"]}
+{"id": "ret-11", "lang": "pt", "question": "O Get Checkout tem antifraude?", "relevant": ["site-getnet-com-br-getcheckout#2"]}
+{"id": "ret-12", "lang": "en", "question": "What is the Getnet SEP single entry point for e-commerce?", "relevant": ["getnet-net-en-our-solutions-omnichannel#1", "site-getnet-com-br-getcheckout#3"]}
+{"id": "ret-13", "lang": "pt", "question": "O que é a solução TEF da Getnet e como integra com o frente de caixa?", "relevant": ["site-getnet-com-br-tef-solucao-tef#3"]}
+{"id": "ret-14", "lang": "pt", "question": "Como me proteger de fraude com Pix na loja?", "relevant": ["site-getnet-com-br-proteja-seu-negocio-e-venda-com-seguranca#2"]}
+{"id": "ret-15", "lang": "pt", "question": "Como falo com a ouvidoria da Getnet?", "relevant": ["site-getnet-com-br-ouvidoria#1"]}
+{"id": "ret-16", "lang": "en", "question": "What is Getnet's MCP AI Tool Kit for agentic commerce?", "relevant": ["getnet-net-en-our-solutions-agentic-commerce#2"]}
+{"id": "ret-17", "lang": "en", "question": "What are agentic payments?", "relevant": ["getnet-net-en-resources-blog-agentic-payments#2"]}
+{"id": "ret-18", "lang": "en", "question": "What is the difference between encryption and tokenisation?", "relevant": ["getnet-net-en-resources-blog-encryption-vs-tokenisation#2", "getnet-net-en-resources-blog-encryption-vs-tokenisation#4", "getnet-net-en-resources-blog-encryption-vs-tokenisation#10"]}
+{"id": "ret-19", "lang": "en", "question": "Can I get an advance on my card sales to improve cash flow?", "relevant": ["getnet-net-en-our-solutions-value-added-solutions#1"]}
+{"id": "ret-20", "lang": "en", "question": "Are Getnet in-person payment terminals PCI compliant?", "relevant": ["getnet-net-en-our-solutions-in-person-payments#1"]}
+{"id": "ret-21", "lang": "en", "question": "How simple is it to integrate Getnet online payments on my site?", "relevant": ["getnet-net-en-our-solutions-online-payments#1"]}
+{"id": "ret-22", "lang": "en", "question": "Can I use Get Smart POS in my restaurant to split bills and tips?", "relevant": ["getnet-net-en-your-business-industries-restaurants#3", "getnet-net-en-your-business-industries-restaurants#1"]}
+{"id": "ret-23", "lang": "en", "question": "Which partners does Getnet have for shopping carts and e-commerce platforms?", "relevant": ["getnet-net-en-partners#1"]}
+{"id": "ret-24", "lang": "en", "question": "Who is Getnet and what does the company do?", "relevant": ["getnet-net-en-corporate-about-us#0"]}
+{"id": "ret-25", "lang": "en", "question": "How can developers join the Getnet community and hackathons?", "relevant": ["getnet-net-en-developers#1"]}
+{"id": "ret-26", "lang": "pt", "question": "Como ativo o meu TPA Get Smart e quanto tempo vale o código de ativação?", "relevant": ["getnet-net-pt-suporte-get-smart-como-posso-ativar-o-meu-tpa-get-smart#1"]}
+{"id": "ret-27", "lang": "pt", "question": "Como imprimir um duplicado do talão no Get Classic?", "relevant": ["getnet-net-pt-suporte-get-classic-como-posso-imprimir-um-duplicado-do-#0"]}
+{"id": "ret-28", "lang": "pt", "question": "Como usar o Key Entry para receber sem o cliente presente?", "relevant": ["getnet-net-pt-suporte-get-classic-como-e-que-posso-utilizar-o-servico-#0"]}
+{"id": "ret-29", "lang": "pt", "question": "Qual a tarifa plana para faturação anual abaixo de 300.000 euros?", "relevant": ["getnet-net-pt-tarifas-plana#0"]}
+{"id": "ret-30", "lang": "pt", "question": "Que telemóveis Android são compatíveis com o Get Tap on Phone?", "relevant": ["getnet-net-pt-as-nossas-solucoes-pagamentos-presenciais-tpa-no-telemov#1", "getnet-net-pt-suporte-get-tap-on-phone#0", "getnet-net-pt-suporte-get-tap-on-phone#1"]}
