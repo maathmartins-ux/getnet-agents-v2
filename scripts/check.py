@@ -53,7 +53,10 @@ def docker_steps() -> list[tuple[str, bool, float, str]]:
     if not results[-1][1]:
         return results
     sh(["docker", "rm", "-f", IMAGE])
-    run = step("docker run", ["docker", "run", "-d", "--name", IMAGE, "-p", f"{PORT}:8000", IMAGE])
+    # O eval manda ~70 requests/min como um só lojista; com o limite de produção (30/min) o próprio rate
+    # limiter (correto) devolve 429. O smoke sobe o container com limite alto e WEB_TOOLS=off (sem rede no CI).
+    run = step("docker run", ["docker", "run", "-d", "--name", IMAGE, "-e", "RATE_LIMIT_PER_MIN=1000",
+                              "-e", "WEB_TOOLS=off", "-p", f"{PORT}:8000", IMAGE])
     results.append(run)
     if not run[1]:
         return results

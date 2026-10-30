@@ -164,6 +164,28 @@ o que medir em produção): [docs/EVAL_STRATEGY.md](docs/EVAL_STRATEGY.md).
 ### Offline (determinístico, o que o CI roda)
 
 <!-- eval:begin -->
+Modo: `in-process`
+
+| Métrica | official | memory | handoff | guardrail | variation | hard | heldout | ALL |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| cases | 10 | 6 | 1 | 10 | 12 | 8 | 12 | 59 |
+| intent_acc | 100.0 | 83.3 | 100.0 | 100.0 | 91.7 | 62.5 | 83.3 | 88.1 |
+| handoff_acc | 100.0 | — | 100.0 | 100.0 | 100.0 | 66.7 | 75.0 | 85.7 |
+| blocked_acc | — | — | — | 100.0 | — | 0.0 | 100.0 | 88.9 |
+| language_acc | 100.0 | 100.0 | — | — | 100.0 | 100.0 | 100.0 | 100.0 |
+| tools_acc | 100.0 | 40.0 | — | 100.0 | 75.0 | 25.0 | 80.0 | 65.2 |
+| pending_action_acc | — | 100.0 | — | — | — | 100.0 | 100.0 | 100.0 |
+| replanned_acc | — | — | — | — | — | — | — | — |
+| no_leak_acc | — | — | — | 100.0 | — | 100.0 | 100.0 | 100.0 |
+| recall@3 | — | — | — | — | — | — | — | — |
+| mrr | — | — | — | — | — | — | — | — |
+| p95_ms | 2426.4 | 143.6 | 45.6 | 54.3 | 1867.1 | 66.2 | 118.8 | 954.4 |
+| cost_usd | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| crashes | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+Gate (splits guardrail, handoff, memory, official, variation): intent 94.9% (mínimo 90%) → **PASS**. Medidos fora do gate: hard, heldout.
+
+Retrieval (bm25, `evals/retrieval.jsonl`, 30 perguntas): Recall@3 **0.65** · MRR **0.567** · hit@3 0.7
 <!-- eval:end -->
 
 ### Ao vivo (Claude API)
@@ -216,7 +238,7 @@ Spans com `trace_id` em log JSON, tokens e **US$ por request** na própria respo
 | Avaliação (14%) | golden set por split (oficial, variação, memória, guardrail, difícil), **held-out cego** commitado com a spec, gate no CI, juiz Opus 5.5 calibrado com 20 rótulos humanos | seção 5 (offline e ao vivo); `evals/heldout_blind.jsonl` no commit `spec`; [EVAL_STRATEGY](docs/EVAL_STRATEGY.md) |
 | Segurança (13%) | token HMAC (`AUTH_MODE=required`), modo demo marcado, rate limit por identidade/IP, guardrail em 2 camadas, PII mascarada entrada/saída, segredos padrão sinalizados, threat model | `tests/test_scenarios.py` (10 cenários × 2 modos), `tests/test_api.py`, [THREAT_MODEL](docs/THREAT_MODEL.md) |
 | RAG (10%) | crawler getnet.net pt/en → 462 chunks **literais** com URL, data e sha256; BM25 + portão de cobertura; geração só com passagens citadas | `src/app/ingest.py`, [SOURCES](docs/SOURCES.md), Recall@3/MRR na seção 5, [ADR 0003](docs/adr/0003-bm25-antes-de-hibrido.md) |
-| Tools (10%) | 6 tools de CRM com JSON Schema `strict`, dias úteis com feriados 2026, códigos de recusa, 2 ações de escrita com confirmação do dono, identidade do servidor | `src/app/tools.py`, `tests/test_tools.py` |
+| Tools (10%) | 6 tools de CRM com JSON Schema `strict`, dias úteis com feriados nacionais e bancários (calculados por ano), códigos de recusa, 2 ações de escrita com confirmação do dono, identidade do servidor | `src/app/tools.py`, `tests/test_tools.py` |
 | Business fit (8%) | os 10 cenários do enunciado via HTTP com o payload literal; multi-turno | `tests/test_scenarios.py`; split `official` 100% offline |
 | Memória (8%) | histórico SQLite por conversa + resumo de longo prazo por lojista; sobrevive a restart; volume no compose | `tests/test_memory_and_handoff.py` (follow-up, restart, resumo entre conversas) |
 | HITL (7%) | fila persistida, console `/operator`, resposta volta à conversa e o próximo turno a vê; Telegram opcional; 5 gatilhos | `test_handoff_operator_reply_and_resume`, screenshot na seção 6 |
@@ -227,6 +249,37 @@ Spans com `trace_id` em log JSON, tokens e **US$ por request** na própria respo
 ## 10. Linha do tempo (git log)
 
 <!-- timeline:begin -->
+| hora | min | commit |
+|---|---:|---|
+| 16:42:10 | 0 | chore: scaffold from entregar-desafio-cronometrado kit v2.0.0 |
+| 16:45:02 | 3 | spec: contrato Getnet, OWNERSHIP, held-out cego, threat model e ADRs |
+| 16:58:00 | 16 | feat: esqueleto Getnet verde — router, supervisor que replaneja, 3 agentes, AUTH_MODE, memória, /operator |
+| 17:01:35 | 19 | chore: compose com AUTH_MODE=demo, volume SQLite e .env opcional |
+| 17:03:39 | 21 | feat: aviso Telegram opcional de caso humano, alertas com histerese, eval --out |
+| 17:04:30 | 22 | eval: 47 casos (oficial, variação pt/en, multi-turno, guardrail, hard sem gate) |
+| 17:05:09 | 23 | docs: README com arquitetura, RAG, supervisor, segurança; fill_readme com blocos ao vivo e juiz |
+| 17:05:46 | 24 | fix(security): no modo demo o rate limit usa o IP, não o user_id do corpo |
+| 17:05:47 | 24 | docs: estratégia de avaliação (pirâmide, LLM falso com falhas, splits, juiz, gate, produção) |
+| 17:06:32 | 24 | docs: roteiro do vídeo de 6 min com marcadores para números lidos da tela |
+| 17:06:36 | 24 | feat(tools): CRM completo — dias úteis com feriados 2026, códigos de recusa pt/en, escrita com confirmação |
+| 17:06:36 | 24 | fork b: pronto |
+| 17:06:52 | 25 | feat(ingest): crawler getnet.net (en/pt) + site.getnet.com.br, 462 chunks literais com dedupe |
+| 17:08:12 | 26 | fix: 'já reiniciei' não propõe reiniciar; ticket leva a memória do lojista; screenshot do /operator |
+| 17:09:02 | 27 | docs+eval: SOURCES.md e retrieval.jsonl (30 casos, Recall@3 0,65 / MRR 0,59 com BM25) |
+| 17:10:25 | 28 | fork a: pronto |
+| 17:10:56 | 29 | merge: fork a — crawler getnet.net, chunks literais, SOURCES e conjunto de retrieval |
+| 17:11:17 | 29 | Merge branch 'main' into fork/c |
+| 17:11:40 | 30 | eval: calibração do juiz com 20 rótulos humanos (10 fiéis, 10 alucinações plausíveis) sobre chunks reais do fork A |
+| 17:15:09 | 33 | docs: rótulo da tabela de falhas conhecidas após a base do fork A |
+| 17:15:10 | 33 | fork c: pronto |
+| 17:16:17 | 34 | fix: portão de cobertura no RAG; achados da revisão (teto de voltas do supervisor, LLMError abrangente, compare_digest em bytes, resposta nunca vazia, rótulos de métrica escapados) |
+| 17:16:19 | 34 | merge: fork b — tools de CRM, dias úteis com feriados, ações com confirmação |
+| 17:17:23 | 35 | merge: fork c — golden set, calibração do juiz, estratégia de eval e roteiro do vídeo |
+| 17:19:20 | 37 | eval: Recall@3/MRR do conjunto de retrieval no relatório; rodapé com splits gateados |
+| 17:19:56 | 38 | fix(security): /health e log apontam segredos padrão; APP_ENV=production recusa subir com eles |
+| 17:20:23 | 38 | docs: tabela de cobertura da régua com evidência; limitações medidas |
+
+Do primeiro ao último commit: **38 min**.
 <!-- timeline:end -->
 
 ## 11. Scaffold declarado
