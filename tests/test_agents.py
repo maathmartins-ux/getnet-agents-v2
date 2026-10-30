@@ -204,3 +204,11 @@ def test_judge_with_fake_llm(tmp_path, monkeypatch):
     monkeypatch.setattr(judge, "CALIBRATION", calib)
     report = judge.run(FakeLLM())
     assert report["grounded_rate"] == 1.0 and report["human_agreement"] == 1.0
+
+
+def test_cohen_kappa():
+    from evals.judge import cohen_kappa
+
+    assert cohen_kappa([(True, True), (False, False)] * 5) == 1.0
+    assert cohen_kappa([(True, True), (True, False), (False, True), (False, False)]) == 0.0
+    assert cohen_kappa([]) is None

@@ -42,15 +42,29 @@ def run(llm) -> dict:
     rows = [r for r in json.loads(LATEST.read_text(encoding="utf-8"))["rows"] if r["answer"]]
     verdicts = [{"id": r["id"], **judge_one(llm, r["message"], r["answer"], r["source_ids"])} for r in rows]
     calib = [json.loads(line) for line in CALIBRATION.read_text(encoding="utf-8").splitlines() if line.strip()]
-    agree = [judge_one(llm, c["question"], c["answer"], c["source_ids"])["grounded"] == c["human_grounded"]
+    pairs = [(judge_one(llm, c["question"], c["answer"], c["source_ids"])["grounded"], c["human_grounded"])
              for c in calib]
+    agree = [j == h for j, h in pairs]
     n = len(verdicts) or 1
     return {"status": "ran", "model": llm.model, "cases": len(verdicts),
             "grounded_rate": round(sum(v["grounded"] for v in verdicts) / n, 3),
             "helpful_rate": round(sum(v["helpful"] for v in verdicts) / n, 3),
             "mean_score": round(sum(v["score"] for v in verdicts) / n, 2),
             "human_agreement": round(sum(agree) / len(agree), 3) if agree else None,
-            "calibration_cases": len(agree), "verdicts": verdicts}
+            "cohen_kappa": cohen_kappa(pairs), "calibration_cases": len(agree),
+            "calibration_misses": [c["id"] for c, ok in zip(calib, agree, strict=True) if not ok],
+            "verdicts": verdicts}
+
+
+def cohen_kappa(pairs: list[tuple[bool, bool]]) -> float | None:
+    """Concordância juiz × humano descontado o acaso: (po - pe) / (1 - pe)."""
+    if not pairs:
+        return None
+    n = len(pairs)
+    po = sum(j == h for j, h in pairs) / n
+    pj, ph = sum(j for j, _ in pairs) / n, sum(h for _, h in pairs) / n
+    pe = pj * ph + (1 - pj) * (1 - ph)
+    return round((po - pe) / (1 - pe), 3) if pe < 1 else None
 
 
 def main() -> int:
