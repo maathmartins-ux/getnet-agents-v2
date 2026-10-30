@@ -3,6 +3,16 @@ services:
     build: .
     ports:
       - "8000:8000"
+    environment:
+      # demo: aceita o payload literal do enunciado {"message","user_id"} e marca identity_verified=false.
+      # Produção: AUTH_MODE=required (identidade só do Bearer token). Ver docs/adr/0002-auth-mode-demo.md.
+      AUTH_MODE: ${AUTH_MODE:-demo}
+      LLM_PROVIDER: ${LLM_PROVIDER:-offline}
+      WEB_TOOLS: ${WEB_TOOLS:-live}
     env_file:
-      - path: .env
+      - path: .env      # ANTHROPIC_API_KEY, AUTH_SECRET, OPERATOR_TOKEN — nunca commitado
         required: false
+    volumes:
+      - state:/app/var  # SQLite (histórico, memória, tickets, ações) sobrevive a restart e rebuild
+volumes:
+  state:

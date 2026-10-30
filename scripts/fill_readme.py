@@ -51,6 +51,16 @@ def main() -> int:
     text = readme.read_text(encoding="utf-8")
     text = replace_block(text, "eval", f"Modo: `{report['mode']}`\n\n" + to_markdown(report))
     text = replace_block(text, "timeline", timeline())
+    live = RESULTS.parent / "live.json"
+    if live.exists() and "<!-- eval-live:begin -->" in text:
+        lr = json.loads(live.read_text(encoding="utf-8"))
+        text = replace_block(text, "eval-live", f"Modo: `{lr['mode']}` · provedor `{lr.get('provider')}`\n\n"
+                             + to_markdown(lr))
+    judge = RESULTS.parent / "judge.json"
+    if judge.exists() and "<!-- judge:begin -->" in text:
+        j = json.loads(judge.read_text(encoding="utf-8"))
+        rows = ["| campo | valor |", "|---|---|"] + [f"| {k} | {v} |" for k, v in j.items() if k != "verdicts"]
+        text = replace_block(text, "judge", "\n".join(rows))
     readme.write_text(text, encoding="utf-8")
     print("OK: README atualizado com eval e linha do tempo.")
     return 0

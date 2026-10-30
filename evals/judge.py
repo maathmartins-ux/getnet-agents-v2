@@ -59,6 +59,9 @@ def main() -> int:
     from app.config import judge_model, llm_provider
     from app.llm import LLMError, get_llm
 
+    global LATEST
+    if len(sys.argv) > 1:  # ex.: python -m evals.judge evals/results/live.json
+        LATEST = Path(sys.argv[1])
     if not LATEST.exists():
         sys.exit("ERRO: rode `python -m evals.run_evals` antes.")
     if llm_provider() != "anthropic":

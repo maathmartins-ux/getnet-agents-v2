@@ -11,7 +11,7 @@ from __future__ import annotations
 import hmac
 from pathlib import Path
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
@@ -51,9 +51,11 @@ def _require_operator(token: str | None) -> None:
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest, authorization: str | None = Header(default=None)) -> ChatResponse:
+def chat(req: ChatRequest, request: Request, authorization: str | None = Header(default=None)) -> ChatResponse:
     user_id, verified = _identity(authorization, req.user_id)  # em required, o corpo é ignorado
-    if not LIMITER.allow(user_id):
+    # Sem identidade verificada, trocar o user_id do corpo não pode zerar o limite: a chave vira o IP.
+    key = user_id if verified else f"ip:{request.client.host if request.client else 'unknown'}"
+    if not LIMITER.allow(key):
         METRICS.inc("rate_limited_total")
         raise HTTPException(429, "muitas requisições; tente em 1 minuto", headers={"Retry-After": "60"})
     try:
