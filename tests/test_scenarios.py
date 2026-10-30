@@ -69,3 +69,10 @@ def test_demo_mode_forged_token_is_rejected(monkeypatch):
     monkeypatch.setenv("AUTH_MODE", "demo")
     r = client.post("/chat", json={"message": "oi", "user_id": USER}, headers={"Authorization": "Bearer x.forjado"})
     assert r.status_code == 401
+
+
+def test_demo_rate_limit_is_per_client_not_per_body_user(monkeypatch):
+    monkeypatch.setenv("AUTH_MODE", "demo")
+    monkeypatch.setenv("RATE_LIMIT_PER_MIN", "2")
+    codes = [client.post("/chat", json={"message": "oi", "user_id": f"rot{i}"}).status_code for i in range(3)]
+    assert codes == [200, 200, 429]
