@@ -210,8 +210,19 @@ Spans com `trace_id` em log JSON, tokens e **US$ por request** na própria respo
 
 ## 9. Cobertura da régua
 
-<!-- cobertura:begin -->
-<!-- cobertura:end -->
+| Critério (peso) | O que existe | Evidência verificável |
+|---|---|---|
+| Orquestração (15%) | router Haiku + supervisor Sonnet em tool loop que lê `ok/insufficient/error` e replaneja; tabela determinística idêntica offline; `MAX_STEPS`, `ALLOWED` | `src/app/supervisor.py`; `tests/test_agents.py` (6 testes de tabela + 4 do loop LLM com cliente falso); `replans` em cada resposta |
+| Avaliação (14%) | golden set por split (oficial, variação, memória, guardrail, difícil), **held-out cego** commitado com a spec, gate no CI, juiz Opus 5.5 calibrado com 20 rótulos humanos | seção 5 (offline e ao vivo); `evals/heldout_blind.jsonl` no commit `spec`; [EVAL_STRATEGY](docs/EVAL_STRATEGY.md) |
+| Segurança (13%) | token HMAC (`AUTH_MODE=required`), modo demo marcado, rate limit por identidade/IP, guardrail em 2 camadas, PII mascarada entrada/saída, segredos padrão sinalizados, threat model | `tests/test_scenarios.py` (10 cenários × 2 modos), `tests/test_api.py`, [THREAT_MODEL](docs/THREAT_MODEL.md) |
+| RAG (10%) | crawler getnet.net pt/en → 462 chunks **literais** com URL, data e sha256; BM25 + portão de cobertura; geração só com passagens citadas | `src/app/ingest.py`, [SOURCES](docs/SOURCES.md), Recall@3/MRR na seção 5, [ADR 0003](docs/adr/0003-bm25-antes-de-hibrido.md) |
+| Tools (10%) | 6 tools de CRM com JSON Schema `strict`, dias úteis com feriados 2026, códigos de recusa, 2 ações de escrita com confirmação do dono, identidade do servidor | `src/app/tools.py`, `tests/test_tools.py` |
+| Business fit (8%) | os 10 cenários do enunciado via HTTP com o payload literal; multi-turno | `tests/test_scenarios.py`; split `official` 100% offline |
+| Memória (8%) | histórico SQLite por conversa + resumo de longo prazo por lojista; sobrevive a restart; volume no compose | `tests/test_memory_and_handoff.py` (follow-up, restart, resumo entre conversas) |
+| HITL (7%) | fila persistida, console `/operator`, resposta volta à conversa e o próximo turno a vê; Telegram opcional; 5 gatilhos | `test_handoff_operator_reply_and_resume`, screenshot na seção 6 |
+| Observabilidade e custo (6%) | spans com `trace_id`, tokens e US$ por request na resposta, `/metrics` Prometheus, alertas com histerese | [OBSERVABILITY](docs/OBSERVABILITY.md), `test_cost_per_request_from_price_table`, custo na tabela ao vivo |
+| Produção (5%) | lockfiles, Docker multi-stage não-root, healthcheck, volume, CI com smoke do container | `scripts/check.py --docker` no CI |
+| Julgamento (4%) | ADRs, portão léxico medido e declarado fraco, casos difíceis que falham publicados | [docs/adr](docs/adr/), seção 12 |
 
 ## 10. Linha do tempo (git log)
 
@@ -233,3 +244,9 @@ avaliação), cada um com posse de arquivos verificada antes do merge (`scripts/
 - `AUTH_MODE=demo` é inseguro por definição (só para a demonstração do enunciado).
 - Rate limit em memória do processo; com réplicas, mover para Redis. SQLite → Postgres.
 - OpenTelemetry não exportado (spans prontos para isso); alertas propostos, não provisionados.
+- **Portão "sem fonte" offline é léxico e fraco:** cobertura de termos ≥ 0,35 nos 3 melhores trechos mantém todas
+  as perguntas positivas medidas, mas barra só 1 de 5 perguntas sem fonte. O portão semântico é o `NOT_IN_SOURCES`
+  do modo LLM (compare `blind-12` offline × ao vivo na seção 5).
+- Híbrido BM25 + embeddings não foi implementado: a decisão fica para quando o Recall@3 de 0,65 for o gargalo medido.
+- Confirmação de ação usa lock em processo; com réplicas, trocar por `UPDATE ... WHERE status='pending'` atômico.
+  Sem TTL na ação pendente.
