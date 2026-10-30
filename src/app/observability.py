@@ -30,6 +30,8 @@ if not log.handlers:
     log.addHandler(_h)
     log.setLevel(logging.INFO)
     log.propagate = False
+# httpx loga a URL completa em INFO; a do Telegram carrega o token do bot.
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 def new_trace_id() -> str:
@@ -37,6 +39,11 @@ def new_trace_id() -> str:
     _trace_id.set(tid)
     _usage.set({"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0})
     return tid
+
+
+def _esc(value: object) -> str:
+    # Formato de exposição Prometheus: rótulo com aspas, barra ou quebra de linha forjaria séries.
+    return str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
 
 class Metrics:
@@ -56,7 +63,7 @@ class Metrics:
     def render(self) -> str:
         lines = []
         for (name, labels), value in sorted(self.counters.items()):
-            lab = ",".join(f'{k}="{v}"' for k, v in labels)
+            lab = ",".join(f'{k}="{_esc(v)}"' for k, v in labels)
             lines.append(f"{name}{{{lab}}} {value:g}")
         for span, values in sorted(self.latency.items()):
             lines.append(f'span_latency_ms_sum{{span="{span}"}} {sum(values):.3f}')

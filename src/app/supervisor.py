@@ -106,7 +106,11 @@ def run_llm(plan: list[str], ctx: Context) -> Outcome:
             f"Memória do lojista: {ctx.user_summary or '(nenhuma)'}")
     messages: list = [{"role": "user", "content": user}]
     last: str | None = None
-    while len(out.route) < MAX_STEPS:
+    # Teto de voltas do modelo, separado do teto de agentes: transições recusadas não fazem a rota crescer,
+    # e um modelo insistente prenderia o worker (achado da revisão de segurança).
+    for _ in range(MAX_STEPS + 2):
+        if len(out.route) >= MAX_STEPS:
+            break
         resp = llm.create(SYSTEM.format(language=ctx.language), messages, TOOLS, max_tokens=2048)
         if resp.stop_reason != "tool_use":
             out.answer = "".join(b.text for b in resp.content if b.type == "text").strip() or None
@@ -122,7 +126,9 @@ def run_llm(plan: list[str], ctx: Context) -> Outcome:
                                 "content": f"transição não permitida: {last}->{block.name}"})
                 continue
             if name == "escalation":
-                ctx.handoff_reason = str(block.input.get("reason", "supervisor"))[:80]
+                # Motivo livre do modelo vai só para o ticket; métrica usa rótulo fixo (cardinalidade limitada).
+                ctx.handoff_reason = "supervisor_decision"
+                ctx.facts["escalation_note"] = str(block.input.get("reason", ""))[:200]
             elif name == "knowledge" and block.input.get("query"):
                 ctx.facts.setdefault("query_hints", []).append(str(block.input["query"])[:300])
             planned = plan[len(out.route)] if len(out.route) < len(plan) else None

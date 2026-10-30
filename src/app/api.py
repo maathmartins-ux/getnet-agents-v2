@@ -46,7 +46,7 @@ def _identity(authorization: str | None, fallback: str | None = None) -> tuple[s
 
 
 def _require_operator(token: str | None) -> None:
-    if not token or not hmac.compare_digest(token, operator_token()):
+    if not token or not hmac.compare_digest(token.encode(), operator_token().encode()):
         raise HTTPException(403, "operador não autorizado")
 
 

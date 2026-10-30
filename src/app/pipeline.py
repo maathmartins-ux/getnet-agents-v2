@@ -24,6 +24,10 @@ OUT_OF_SCOPE = {
     "en": "I'm the Getnet merchant assistant: I help with card machines, sales, receivables, Pix, payment links "
           "and technical support. That topic is outside what I handle.",
 }
+NO_ANSWER = {
+    "pt": "Não encontrei base para responder com segurança. Posso encaminhar para um especialista humano.",
+    "en": "I couldn't find a reliable basis to answer. I can hand this to a human specialist.",
+}
 SUMMARY_TURNS = 5
 
 
@@ -72,6 +76,8 @@ def handle(req: ChatRequest, user_id: str, identity_verified: bool = True) -> Ch
         answer = OUT_OF_SCOPE[language]
     else:
         answer = outcome.answer or "\n\n".join(r.text for r in outcome.results if r.text)
+    if not answer.strip():  # nunca 200 vazio: vazio no histórico vira 400 da API no turno seguinte
+        answer = NO_ANSWER[language]
     answer = mask_output(answer)
     handoff = next((r.handoff for r in outcome.results if r.handoff), None) or Handoff()
     store.add_message(conversation_id, user_id, "user", verdict.text, decision.intent)  # texto já mascarado

@@ -16,7 +16,7 @@ def ctx(text, intent="product_question", user="cliente1988", conv="c1"):
 
 # --- supervisor por tabela ------------------------------------------------------------------
 def test_table_replans_when_no_source():
-    out = supervisor.run(["knowledge"], ctx("Qual a capital da Mongólia no ano 1300?"))
+    out = supervisor.run(["knowledge"], ctx("Qual o horário de funcionamento da agência Getnet em Lisboa?"))
     assert out.route == ["knowledge", "escalation"]
     assert out.replans == ["knowledge:no_source->escalation"]
     assert out.results[-1].handoff.reason == "knowledge_no_source"

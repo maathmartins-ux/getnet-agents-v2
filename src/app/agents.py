@@ -16,7 +16,7 @@ from pathlib import Path
 from .config import agent_model
 from .llm import LLMError, get_llm
 from .notify import notify_new_ticket
-from .rag import get_index
+from .rag import get_index, tokenize
 from .schemas import Handoff, Source, ToolCall
 from .store import get_store
 from .tools import run_tool, tool_specs
@@ -24,6 +24,17 @@ from .web_tools import WEB_TOOLS, pick
 
 # BM25 bruto abaixo disso = sem fonte. Calibrar com Recall@3/MRR de evals/retrieval.jsonl, não no olho.
 MIN_SCORE = 1.0
+# Fração dos termos da pergunta presentes nos 3 melhores trechos. Score BM25 sozinho aceita pergunta sem
+# fonte por um termo raro. Medido em 30/10 (top-3): positivos de evals/retrieval.jsonl + oficiais >= 0,38;
+# perguntas sem fonte 0,25–0,50 -> com 0,35 só 1 de 5 é barrada. Portão léxico é fraco de propósito declarado:
+# o portão semântico é o NOT_IN_SOURCES do modo LLM.
+MIN_COVERAGE = 0.35
+
+
+def coverage(question: str, docs: list) -> float:
+    terms = set(tokenize(question))
+    seen = set().union(*(set(tokenize(f"{d.title} {d.text}")) for d in docs)) if docs else set()
+    return len(terms & seen) / len(terms) if terms else 0.0
 _PROMPTS = Path(__file__).parent / "prompts"
 KNOWLEDGE_SYSTEM = (_PROMPTS / "knowledge.md").read_text(encoding="utf-8")
 SUPPORT_SYSTEM = (_PROMPTS / "support.md").read_text(encoding="utf-8")
@@ -124,7 +135,7 @@ def knowledge_agent(ctx: Context) -> AgentResult:
                                    "I have no tool for that topic."))
     query = " ".join([ctx.text, *ctx.facts.get("query_hints", [])])
     hits = [(d, s) for d, s in get_index().search(query, k=3) if s >= MIN_SCORE]
-    if not hits:
+    if not hits or coverage(ctx.text, [d for d, _ in hits]) < MIN_COVERAGE:
         return AgentResult("knowledge", "insufficient", reason="no_source")
     sources = [Source(id=d.id, title=d.title, url=d.url) for d, _ in hits]
     llm = get_llm(agent_model())
@@ -227,7 +238,7 @@ def _support_llm(ctx: Context) -> AgentResult:
             results.append({"type": "tool_result", "tool_use_id": block.id,
                             "content": json.dumps(result, ensure_ascii=False), "is_error": not call.ok})
         messages.append({"role": "user", "content": results})
-    return AgentResult("support", "error", tool_calls=calls, reason="tool_loop_limit")
+    return AgentResult("support", "error", tool_calls=calls, reason="tool_loop_limit", pending_action=pending)
 
 
 def support_agent(ctx: Context) -> AgentResult:
@@ -264,6 +275,8 @@ def escalation_agent(ctx: Context) -> AgentResult:
     summary = f"[{ctx.intent}] {ctx.text[:300]}"
     if ctx.facts.get("support"):
         summary += f" | fatos: {json.dumps(ctx.facts['support'], ensure_ascii=False)[:200]}"
+    if ctx.facts.get("escalation_note"):
+        summary += f" | supervisor: {ctx.facts['escalation_note']}"
     if ctx.user_summary:  # o operador vê o contexto de conversas anteriores, não só a frase solta
         summary += f" | memória: {ctx.user_summary[:300]}"
     store = get_store()

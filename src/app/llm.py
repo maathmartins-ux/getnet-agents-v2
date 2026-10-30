@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from functools import lru_cache
 
 from .config import agent_model, effort_for, llm_provider
 from .observability import record_llm_usage, span
@@ -66,6 +67,10 @@ class AnthropicLLM:
                 raise LLMError(f"api_status_{exc.status_code}: {exc.message}") from exc
             except sdk.APIConnectionError as exc:
                 raise LLMError(f"connection: {exc}") from exc
+            except sdk.APIError as exc:  # ex.: APIResponseValidationError
+                raise LLMError(f"api_error: {type(exc).__name__}") from exc
+            except TypeError as exc:  # SDK sem credencial resolvível levanta TypeError
+                raise LLMError(f"client_config: {exc}") from exc
         record_llm_usage(self.model, resp.usage.input_tokens, resp.usage.output_tokens)
         if resp.stop_reason == "refusal":
             raise LLMError("refusal")
@@ -84,7 +89,12 @@ class AnthropicLLM:
                           tool_choice={"type": "auto"})
 
 
+@lru_cache(maxsize=8)
+def _anthropic(model: str) -> AnthropicLLM:
+    return AnthropicLLM(model)  # um cliente (pool httpx) por modelo, não um por chamada
+
+
 def get_llm(model: str | None = None) -> OfflineLLM | AnthropicLLM:
     if llm_provider() == "anthropic":
-        return AnthropicLLM(model or agent_model())
+        return _anthropic(model or agent_model())
     return OfflineLLM()

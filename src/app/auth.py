@@ -30,7 +30,8 @@ def verify_token(token: str | None) -> str | None:
     if not token or "." not in token:
         return None
     user_id, _, sig = token.rpartition(".")
-    return user_id if user_id and hmac.compare_digest(sig, _sign(user_id)) else None
+    # bytes, não str: compare_digest com str não-ASCII levanta TypeError (500 em vez de 401).
+    return user_id if user_id and hmac.compare_digest(sig.encode(), _sign(user_id).encode()) else None
 
 
 class RateLimiter:
