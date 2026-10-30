@@ -179,7 +179,7 @@ Modo: `in-process`
 | no_leak_acc | — | — | — | 100.0 | — | 100.0 | 100.0 | 100.0 |
 | recall@3 | — | — | — | — | — | — | — | — |
 | mrr | — | — | — | — | — | — | — | — |
-| p95_ms | 2426.4 | 143.6 | 45.6 | 54.3 | 1867.1 | 66.2 | 118.8 | 954.4 |
+| p95_ms | 2568.3 | 137.2 | 62.7 | 48.3 | 1869.5 | 62.8 | 107.7 | 1225.9 |
 | cost_usd | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
 | crashes | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 
@@ -191,13 +191,13 @@ Retrieval (bm25, `evals/retrieval.jsonl`, 30 perguntas): Recall@3 **0.65** · MR
 ### Ao vivo (Claude API)
 
 <!-- eval-live:begin -->
-_Ainda não rodado._
+_Disparado às 17:17 (dentro do relógio, ~1 chamada Sonnet/Haiku por etapa, 59 casos em série). O resultado chega depois de 17:42 e entra aqui num commit marcado como **pós-relógio**._
 <!-- eval-live:end -->
 
 ### Juiz LLM (Opus 5.5) e concordância com rótulo humano
 
 <!-- judge:begin -->
-_Ainda não rodado._
+_Roda sobre o resultado ao vivo; entra no mesmo commit pós-relógio._
 <!-- judge:end -->
 
 ## 6. Memória, HITL e resiliência
@@ -278,8 +278,9 @@ Spans com `trace_id` em log JSON, tokens e **US$ por request** na própria respo
 | 17:19:20 | 37 | eval: Recall@3/MRR do conjunto de retrieval no relatório; rodapé com splits gateados |
 | 17:19:56 | 38 | fix(security): /health e log apontam segredos padrão; APP_ENV=production recusa subir com eles |
 | 17:20:23 | 38 | docs: tabela de cobertura da régua com evidência; limitações medidas |
+| 17:24:53 | 43 | fix(check): smoke do container com limite alto e sem rede (o 429 era o rate limiter funcionando); README com eval offline |
 
-Do primeiro ao último commit: **38 min**.
+Do primeiro ao último commit: **43 min**.
 <!-- timeline:end -->
 
 ## 11. Scaffold declarado
@@ -291,7 +292,16 @@ router, supervisor LLM, agentes Getnet, tools, dados, AUTH_MODE, console do oper
 seguintes. O trabalho foi feito por uma sessão principal e três forks em `git worktree` (conhecimento, ferramentas,
 avaliação), cada um com posse de arquivos verificada antes do merge (`scripts/check_ownership.py`).
 
-## 12. Limitações
+## 12. Revisão antes da entrega
+
+Revisão de segurança e correção por um agente revisor independente (só leitura) sobre `src/app/`: 12 achados.
+Corrigidos no relógio: loop sem teto no supervisor LLM, exceções do SDK fora de `LLMError` (500), `compare_digest`
+com não-ASCII (500 em vez de 401), resposta vazia gravada no histórico, rótulos de métrica controlados pelo modelo,
+ação pendente órfã no limite de voltas, token do Telegram em log do httpx, segredos padrão (agora no `/health` e
+recusados com `APP_ENV=production`). Declarados como limitação: confirmação atômica entre réplicas e TTL, máscara de
+cartão sem Luhn, oráculo de `conversation_id`. `/code-review` da ferramenta não foi rodado no relógio.
+
+## 13. Limitações
 
 - CRM fictício; integração real exigiria as APIs internas da Getnet.
 - `AUTH_MODE=demo` é inseguro por definição (só para a demonstração do enunciado).
