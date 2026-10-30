@@ -1,0 +1,8 @@
+{
+  "frozen": ["src/app/schemas.py", "OWNERSHIP.json", "docs/SPEC.md"],
+  "forks": {
+    "a": ["data/**", "docs/SOURCES.md"],
+    "b": ["src/app/tools.py", "tests/test_tools.py"],
+    "c": ["evals/cases.jsonl", "evals/judge_calibration.jsonl", "tests/test_scenarios.py", "docs/VIDEO_SCRIPT.md"]
+  }
+}
