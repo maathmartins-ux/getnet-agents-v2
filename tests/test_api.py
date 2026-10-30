@@ -71,3 +71,10 @@ def test_metrics_counts_requests():
 def test_operator_console_is_served_without_secrets():
     html = client.get("/operator").text
     assert "Fila de atendimento humano" in html and "test-operator" not in html
+
+
+def test_health_flags_insecure_default_secrets(monkeypatch):
+    assert "OPERATOR_TOKEN" in client.get("/health").json()["insecure_defaults"]  # "test-operator" é curto
+    monkeypatch.setenv("AUTH_SECRET", "x" * 32)
+    monkeypatch.setenv("OPERATOR_TOKEN", "y" * 32)
+    assert client.get("/health").json()["insecure_defaults"] == []

@@ -9,6 +9,7 @@ Infra: GET /health (com contagem de dados) · GET /metrics
 from __future__ import annotations
 
 import hmac
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -17,8 +18,8 @@ from pydantic import BaseModel, Field
 
 from . import __version__
 from .auth import LIMITER, verify_token
-from .config import auth_mode, data_dir, llm_provider, operator_token
-from .observability import METRICS
+from .config import auth_mode, auth_secret, data_dir, llm_provider, operator_token
+from .observability import METRICS, log
 from .pipeline import handle
 from .schemas import ChatRequest, ChatResponse
 from .store import get_store
@@ -116,7 +117,23 @@ def health() -> dict:
     # resolve dentro da imagem, não só na máquina de quem desenvolveu.
     files = [p for p in data_dir().rglob("*") if p.is_file() and p.name != ".gitkeep"]
     return {"status": "ok", "version": __version__, "mode": llm_provider(), "auth_mode": auth_mode(),
-            "data_files": len(files)}
+            "insecure_defaults": insecure_defaults(), "data_files": len(files)}
+
+
+def insecure_defaults() -> list[str]:
+    """Segredos padrão/curtos tornam o token forjável (achado da revisão). Visível no /health e no log."""
+    bad = [name for name, value in (("AUTH_SECRET", auth_secret()), ("OPERATOR_TOKEN", operator_token()))
+           if value.startswith("dev-") or len(value) < 16]
+    return bad
+
+
+@app.on_event("startup")
+def _guard_secrets() -> None:
+    bad = insecure_defaults()
+    if bad and os.getenv("APP_ENV") == "production":
+        raise RuntimeError(f"segredos padrão em produção: {bad}")  # falha alto em vez de subir forjável
+    if bad:
+        log.warning("insecure_defaults", extra={"extra_fields": {"vars": bad}})
 
 
 @app.get("/metrics", response_class=PlainTextResponse)
