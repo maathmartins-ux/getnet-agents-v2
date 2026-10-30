@@ -1,17 +1,68 @@
 {
   "cliente1988": {
-    "profile": {"name": "Padaria Exemplo (fictício)", "plan": "Get Smart", "segment": "alimentação", "city": "Porto Alegre"},
+    "profile": {
+      "name": "Padaria Exemplo (fictício)",
+      "plan": "Get Smart",
+      "segment": "alimentação",
+      "city": "Porto Alegre",
+      "document_masked": "**.***.***/0001-** (fictício)",
+      "account_status": "active",
+      "customer_since": "2023-03-14",
+      "terminals": 1,
+      "settlement_plan": "D+1 em dias úteis",
+      "advance_eligible": true
+    },
     "yesterday_sales_brl": 1840.50,
+    "receivables_available_brl": 8200.00,
     "transactions": [
-      {"id": "TX-1", "amount_brl": 42.0, "status": "declined", "code": "51", "reason": "saldo insuficiente no cartão do comprador"},
-      {"id": "TX-2", "amount_brl": 18.5, "status": "approved", "code": "00", "reason": "aprovada"}
+      {"id": "TX-1007", "days_ago": 0, "time": "09:48", "amount_brl": 42.00, "installments": 1, "brand": "Visa", "type": "credit", "status": "declined", "code": "51"},
+      {"id": "TX-1006", "days_ago": 0, "time": "09:31", "amount_brl": 18.50, "installments": 1, "brand": "Mastercard", "type": "debit", "status": "approved", "code": "00"},
+      {"id": "TX-1005", "days_ago": 0, "time": "08:57", "amount_brl": 76.90, "installments": 3, "brand": "Elo", "type": "credit", "status": "declined", "code": "05"},
+      {"id": "TX-1004", "days_ago": 1, "time": "18:20", "amount_brl": 129.00, "installments": 1, "brand": "Visa", "type": "credit", "status": "approved", "code": "00"},
+      {"id": "TX-1003", "days_ago": 1, "time": "17:02", "amount_brl": 35.00, "installments": 1, "brand": "Mastercard", "type": "debit", "status": "declined", "code": "55"},
+      {"id": "TX-1002", "days_ago": 1, "time": "12:40", "amount_brl": 58.30, "installments": 1, "brand": "Pix", "type": "pix", "status": "approved", "code": "00"},
+      {"id": "TX-1001", "days_ago": 2, "time": "10:15", "amount_brl": 210.00, "installments": 6, "brand": "Visa", "type": "credit", "status": "approved", "code": "00"}
     ],
-    "terminal": {"model": "Get Smart", "status": "offline", "connection": "wifi", "signal": "weak", "last_seen": "2026-10-30T08:12:00-03:00"}
+    "terminal": {
+      "model": "Get Smart",
+      "serial_masked": "GS****4821",
+      "status": "offline",
+      "connection": "wifi",
+      "signal": "weak",
+      "wifi": {"configured": true, "network": "Padaria-WiFi", "signal": "weak", "signal_dbm": -84},
+      "chip": {"inserted": true, "carrier": "Operadora fictícia", "signal": "good"},
+      "firmware": "4.2.1",
+      "last_seen_minutes_ago": 95
+    }
   },
   "cliente2020": {
-    "profile": {"name": "Loja Outra (fictício)", "plan": "Get Clássica", "segment": "varejo", "city": "Recife"},
-    "yesterday_sales_brl": 99999.0,
-    "transactions": [],
-    "terminal": {"model": "Get Clássica", "status": "online", "connection": "chip", "signal": "good"}
+    "profile": {
+      "name": "Loja Outra (fictício)",
+      "plan": "Get Clássica",
+      "segment": "varejo",
+      "city": "Recife",
+      "document_masked": "**.***.***/0001-** (fictício)",
+      "account_status": "active",
+      "customer_since": "2021-08-02",
+      "terminals": 2,
+      "settlement_plan": "D+1 em dias úteis",
+      "advance_eligible": false
+    },
+    "yesterday_sales_brl": 99999.00,
+    "receivables_available_brl": 777777.00,
+    "transactions": [
+      {"id": "TX-2001", "days_ago": 0, "time": "11:05", "amount_brl": 4321.00, "installments": 1, "brand": "Visa", "type": "credit", "status": "declined", "code": "91"}
+    ],
+    "terminal": {
+      "model": "Get Clássica",
+      "serial_masked": "GC****9090",
+      "status": "online",
+      "connection": "chip",
+      "signal": "good",
+      "wifi": {"configured": false},
+      "chip": {"inserted": true, "carrier": "Operadora fictícia", "signal": "good"},
+      "firmware": "3.9.0",
+      "last_seen_minutes_ago": 0
+    }
   }
 }
