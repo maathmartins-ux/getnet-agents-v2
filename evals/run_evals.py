@@ -91,7 +91,7 @@ def score(case: dict, got: dict) -> dict[str, bool]:
     return checks
 
 
-def run(url: str | None = None) -> dict:
+def run(url: str | None = None, out: Path | None = None) -> dict:
     from app.rag import recall_at_k, reciprocal_rank
 
     if not url:  # banco descartável: o eval não herda conversas de execuções anteriores
@@ -150,8 +150,10 @@ def run(url: str | None = None) -> dict:
               "gated_splits": sorted({r["split"] for r in gated}), "ungated_splits": sorted(UNGATED),
               "passed": overall >= GATE and metrics["ALL"]["crashes"] == 0, "metrics": metrics, "rows": rows,
               "failures": [r for r in rows if r["crash"] or not all(r["checks"].values())]}
-    RESULTS.parent.mkdir(parents=True, exist_ok=True)
-    RESULTS.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    report["provider"] = os.getenv("LLM_PROVIDER", "offline")
+    target = out or RESULTS
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     return report
 
 
@@ -172,7 +174,9 @@ def main() -> int:
         stream.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", help="avaliar a API rodando em vez do pipeline em processo")
-    report = run(ap.parse_args().url)
+    ap.add_argument("--out", type=Path, help="arquivo de saída (padrão evals/results/latest.json)")
+    args = ap.parse_args()
+    report = run(args.url, args.out)
     print(to_markdown(report))
     for f in report["failures"]:
         print(f"- {f['id']}: got intent={f['got_intent']} checks={f['checks']} crash={f['crash']}")

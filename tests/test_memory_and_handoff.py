@@ -91,3 +91,17 @@ def test_write_action_needs_owner_confirmation():
     done = client.post(f"/actions/{action}/confirm", headers=auth()).json()
     assert done["ok"] is True
     assert client.post(f"/actions/{action}/confirm", headers=auth()).json()["error"] == "already_done"
+
+
+def test_telegram_notify_only_when_configured(monkeypatch):
+    from app import notify
+
+    sent = []
+    monkeypatch.setattr(notify, "_send", lambda token, chat, text: sent.append(text))
+    monkeypatch.setattr(notify.threading, "Thread", lambda target, args, daemon: type(
+        "T", (), {"start": lambda self: target(*args)})())
+    assert notify.notify_new_ticket({"id": "T-1", "reason": "r", "user_id": "u", "summary": "s"}) is False
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "x")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "1")
+    chat("Quero falar com um atendente")
+    assert len(sent) == 1 and "/operator" in sent[0]

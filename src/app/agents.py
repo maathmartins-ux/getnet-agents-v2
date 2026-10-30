@@ -15,6 +15,7 @@ from pathlib import Path
 
 from .config import agent_model
 from .llm import LLMError, get_llm
+from .notify import notify_new_ticket
 from .rag import get_index
 from .schemas import Handoff, Source, ToolCall
 from .store import get_store
@@ -261,7 +262,11 @@ def escalation_agent(ctx: Context) -> AgentResult:
     summary = f"[{ctx.intent}] {ctx.text[:300]}"
     if ctx.facts.get("support"):
         summary += f" | fatos: {json.dumps(ctx.facts['support'], ensure_ascii=False)[:200]}"
-    ticket = get_store().open_ticket(ctx.conversation_id, ctx.user_id, reason, summary)
+    store = get_store()
+    is_new = store.ticket_for(ctx.conversation_id, "open") is None
+    ticket = store.open_ticket(ctx.conversation_id, ctx.user_id, reason, summary)
+    if is_new:
+        notify_new_ticket(ticket)  # opcional (Telegram); a fila persistida é a fonte da verdade
     return AgentResult("escalation", "ok", handoff=Handoff(required=True, reason=reason, ticket_id=ticket["id"]),
                        text=_t(ctx, f"Encaminhei para um especialista humano (protocolo {ticket['id']}). "
                                     "A resposta aparece nesta mesma conversa.",
