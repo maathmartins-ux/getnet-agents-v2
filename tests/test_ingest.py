@@ -7,7 +7,8 @@ from app.ingest import MAX_CHARS, MIN_CHARS, chunk_blocks, html_to_blocks, sha
 
 HTML = ("<html><head><title>Get Smart</title><script>var x=1</script></head><body><nav>menu</nav>"
         "<h1>Get Smart</h1><p>" + "Maquininha com tela touch e aplicativos. " * 12 + "</p>"
-        "<p>" + "Recebimento rápido das vendas no débito e crédito. " * 10 + "</p><footer>rodapé</footer></body></html>")
+        "<p>" + "Recebimento rápido das vendas no débito e crédito. " * 10 + "</p>"
+        "<footer>rodapé</footer></body></html>")
 
 
 def test_html_to_blocks_drops_script_nav_footer():
