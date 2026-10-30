@@ -83,7 +83,7 @@ reprova com qualquer crash.
 - **100% em tudo é sinal de conjunto viciado**, não de sistema bom. O split `hard` existe para ter
   casos que falham hoje e mostram onde o sistema quebra.
 
-**Falhas conhecidas que o golden set expõe (modo offline, antes da integração dos forks A e B):**
+**Falhas conhecidas que o golden set expõe (modo offline, com a base real do fork A, antes do fork B):**
 
 | Caso | Falha | Leitura |
 |---|---|---|
