@@ -309,6 +309,33 @@ router, supervisor LLM, agentes Getnet, tools, dados, AUTH_MODE, console do oper
 seguintes. O trabalho foi feito por uma sessão principal e três forks em `git worktree` (conhecimento, ferramentas,
 avaliação), cada um com posse de arquivos verificada antes do merge (`scripts/check_ownership.py`).
 
+## Depois do relógio (30/10, após 17:26)
+
+Tudo abaixo foi feito depois do último commit do relógio (`1b09a56`, 17:26:31) e está em commits
+`pós-relógio:`. Os números da seção 5 são os do relógio e não foram alterados.
+
+**Casos de replanejamento (offline, 5 casos novos, split `replan`):** replanned_acc 40.0%, intent_acc 80.0%. Falhas mantidas: `replan-01`, `replan-02`, `replan-03`.
+
+**Ao vivo — official (10 cenários do enunciado)** (Haiku 5.5 low no router/guardrail, Sonnet 5.5 medium no supervisor e agentes; 10 casos, 0 crashes):
+
+| split | casos | intent_acc | tools_acc | handoff_acc | replanned_acc | p95 ms | US$ total | US$/req |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| official | 10 | 100.0 | 100.0 | 100.0 | — | 17952 | 0.1562 | 0.0156 |
+
+Falhas: nenhuma.
+
+**Ao vivo — replan** (Haiku 5.5 low no router/guardrail, Sonnet 5.5 medium no supervisor e agentes; 5 casos, 0 crashes):
+
+| split | casos | intent_acc | tools_acc | handoff_acc | replanned_acc | p95 ms | US$ total | US$/req |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| replan | 5 | 100.0 | 100.0 | 80.0 | 100.0 | 18771 | 0.1177 | 0.0235 |
+
+Falhas: `replan-04` (handoff).
+
+**Juiz `claude-opus-5-5` (effort medium) na calibração humana:** concordância 0.95 em 20 rótulos, kappa de Cohen 0.9; erros: cal-17. O juiz sobre as respostas ao vivo não coube no prazo.
+
+**Custo medido das rodadas ao vivo acima:** US$ 0.2739 (o juiz e as duas rodadas interrompidas — 17:17–17:26 e 17:28–17:33 — não gravaram custo; estimativa conservadora ≤ US$ 1,5 somando tudo, dentro do teto de US$ 3).
+
 ## 12. Revisão antes da entrega
 
 Revisão de segurança e correção por um agente revisor independente (só leitura) sobre `src/app/`: 12 achados.
