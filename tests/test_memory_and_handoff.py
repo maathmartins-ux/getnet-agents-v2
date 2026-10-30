@@ -105,3 +105,15 @@ def test_telegram_notify_only_when_configured(monkeypatch):
     monkeypatch.setenv("TELEGRAM_CHAT_ID", "1")
     chat("Quero falar com um atendente")
     assert len(sent) == 1 and "/operator" in sent[0]
+
+
+def test_already_restarted_is_not_a_restart_request():
+    resp = chat("Minha maquininha não conecta na internet, já reiniciei e nada")
+    names = {c["name"] for c in resp["tool_calls"]}
+    assert "restart_terminal" not in names and "get_terminal_status" in names and not resp["pending_action"]
+
+
+def test_ticket_summary_carries_long_term_memory():
+    chat("Minha maquininha não conecta na internet")
+    ticket = chat("Quero falar com um atendente")["handoff"]["ticket_id"]
+    assert "technical_support" in get_store().get_ticket(ticket)["summary"]

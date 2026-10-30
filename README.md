@@ -187,7 +187,9 @@ _Ainda não rodado._
 - **HITL:** escalation abre ticket persistido (idempotente por conversa) → operador vê a fila com o histórico em
   `/operator` → responde → a resposta entra na conversa como `human_agent` e o próximo turno a enxerga
   (`test_handoff_operator_reply_and_resume`, `test_ticket_survives_restart`). Gatilhos: pedido explícito, sem fonte,
-  falha de tool, baixa confiança do router, decisão do supervisor.
+  falha de tool, baixa confiança do router, decisão do supervisor. O ticket leva a memória do lojista.
+
+  ![Console do operador com um caso aberto](docs/img/operator.png)
 - **Resiliência:** retries do SDK (2), timeout de 30 s, fallback por camada (router, guardrail, supervisor, agentes)
   para o caminho determinístico; volume Docker para o SQLite.
 

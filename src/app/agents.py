@@ -148,7 +148,9 @@ def knowledge_agent(ctx: Context) -> AgentResult:
 
 # --- support -------------------------------------------------------------------------------
 _RULES = [  # (regex, tool) — ordem importa: ação explícita antes de leitura
-    (re.compile(r"reinici|restart|reboot", re.I), "restart_terminal"),
+    # "já reiniciei" / "already restarted" é relato, não pedido: não propõe reiniciar de novo
+    (re.compile(r"(?<!j[aá] )(?<!already )\b(reinici(a|ar|e)|restart|reboot)\b(?! (e|and) )", re.I),
+     "restart_terminal"),
     (re.compile(r"quero antecipar|antecipar meus|want to advance|advance my|request (an )?advance", re.I),
      "request_receivables_advance"),
     (re.compile(r"recus|negad|decline|denied|transa[cç]", re.I), "get_recent_transactions"),
@@ -262,6 +264,8 @@ def escalation_agent(ctx: Context) -> AgentResult:
     summary = f"[{ctx.intent}] {ctx.text[:300]}"
     if ctx.facts.get("support"):
         summary += f" | fatos: {json.dumps(ctx.facts['support'], ensure_ascii=False)[:200]}"
+    if ctx.user_summary:  # o operador vê o contexto de conversas anteriores, não só a frase solta
+        summary += f" | memória: {ctx.user_summary[:300]}"
     store = get_store()
     is_new = store.ticket_for(ctx.conversation_id, "open") is None
     ticket = store.open_ticket(ctx.conversation_id, ctx.user_id, reason, summary)
