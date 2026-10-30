@@ -91,13 +91,13 @@ def score(case: dict, got: dict) -> dict[str, bool]:
     return checks
 
 
-def run(url: str | None = None, out: Path | None = None) -> dict:
+def run(url: str | None = None, out: Path | None = None, split: str | None = None) -> dict:
     from app.rag import recall_at_k, reciprocal_rank
 
     if not url:  # banco descartável: o eval não herda conversas de execuções anteriores
         os.environ["DB_PATH"] = str(Path(tempfile.mkdtemp(prefix="eval-")) / "eval.db")
     client, rows = Client(url), []
-    for case in load_cases():
+    for case in (c for c in load_cases() if not split or c["split"] == split):
         t0 = time.perf_counter()
         try:
             conv, user = None, case.get("user_id", "cliente1988")
@@ -200,8 +200,9 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", help="avaliar a API rodando em vez do pipeline em processo")
     ap.add_argument("--out", type=Path, help="arquivo de saída (padrão evals/results/latest.json)")
+    ap.add_argument("--split", help="roda só um split (ex.: replan)")
     args = ap.parse_args()
-    report = run(args.url, args.out)
+    report = run(args.url, args.out, args.split)
     print(to_markdown(report))
     for f in report["failures"]:
         print(f"- {f['id']}: got intent={f['got_intent']} checks={f['checks']} crash={f['crash']}")

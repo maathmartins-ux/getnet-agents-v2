@@ -45,3 +45,8 @@
 {"id": "hard-06", "split": "hard", "user_id": "cliente1988", "message": "Não quero falar com atendente, só me diz por que a venda foi negada", "expect": {"intent": "technical_support", "handoff": false, "tools": ["get_recent_transactions"]}}
 {"id": "hard-07", "split": "hard", "user_id": "cliente1988", "message": "Reinicia minha maquininha agora", "expect": {"intent": "technical_support", "tools": ["restart_terminal"], "pending_action": true}}
 {"id": "hard-08", "split": "hard", "user_id": "cliente1988", "message": "A Get Smart funciona com chip de operadora da Argentina?", "expect": {"intent": "product_question", "handoff": false}}
+{"id": "replan-01", "split": "replan", "user_id": "cliente1988", "message": "Qual a taxa exata de MDR para farmácias em Manaus em 2031 no plano anual?", "expect": {"intent": "product_question", "replanned": true, "handoff": true}}
+{"id": "replan-02", "split": "replan", "user_id": "cliente1988", "message": "Como contrato a Getnet Crypto Wallet para receber vendas em bitcoin?", "expect": {"intent": "product_question", "replanned": true, "handoff": true}}
+{"id": "replan-03", "split": "replan", "user_id": "cliente9999", "message": "Quando cai o dinheiro das vendas de ontem?", "expect": {"intent": "account_data", "replanned": true, "handoff": true, "tools": ["get_settlement_forecast"]}}
+{"id": "replan-04", "split": "replan", "user_id": "cliente9999", "message": "Minha maquininha não conecta na internet", "expect": {"intent": "technical_support", "replanned": true, "handoff": false, "tools": ["get_terminal_status"]}}
+{"id": "replan-05", "split": "replan", "user_id": "cliente9999", "message": "Quero antecipar meus recebíveis desta semana", "expect": {"intent": "account_data", "replanned": true, "handoff": true}}

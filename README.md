@@ -43,13 +43,24 @@ curl -s -X POST localhost:8000/chat -H "Authorization: Bearer $TOKEN" -H "Conten
 | `AUTH_SECRET`, `OPERATOR_TOKEN` | valores de dev | **troque** fora de demo |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | vazio | avisa o operador de caso novo (opcional) |
 
-Testes e eval sem Docker:
+Testes e eval sem Docker (rode **dentro da pasta do projeto**):
 
 ```bash
 uv venv .venv && uv pip install -r requirements-dev.lock && uv pip install --no-deps -e .
 .venv/Scripts/python.exe scripts/check.py          # ruff + pytest + eval com gate (offline)
-LLM_PROVIDER=anthropic .venv/Scripts/python.exe -m evals.run_evals --out evals/results/live.json   # ao vivo (com chave)
-LLM_PROVIDER=anthropic .venv/Scripts/python.exe -m evals.judge evals/results/live.json            # juiz Opus 5.5
+```
+
+Eval ao vivo + juiz + README, com `ANTHROPIC_API_KEY` no `.env` do projeto (o app não lê o `.env` sozinho; o script
+carrega sem imprimir a chave):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\live_eval.ps1      # Windows / PowerShell
+```
+
+```bash
+set -a; . ./.env; set +a; export LLM_PROVIDER=anthropic          # Linux/macOS/Git Bash
+.venv/Scripts/python.exe -m evals.run_evals --out evals/results/live.json
+.venv/Scripts/python.exe -m evals.judge evals/results/live.json
 ```
 
 ## 2. Arquitetura
