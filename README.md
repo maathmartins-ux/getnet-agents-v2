@@ -191,13 +191,18 @@ Retrieval (bm25, `evals/retrieval.jsonl`, 30 perguntas): Recall@3 **0.65** · MR
 ### Ao vivo (Claude API)
 
 <!-- eval-live:begin -->
-_Disparado às 17:17 (dentro do relógio, ~1 chamada Sonnet/Haiku por etapa, 59 casos em série). O resultado chega depois de 17:42 e entra aqui num commit marcado como **pós-relógio**._
+**Não rodado no relógio.** Disparado às 17:17 e interrompido às 17:26: 59 casos em série com 4–8 chamadas por turno
+não cabiam na margem de 55 min. O modo ao vivo foi exercitado no relógio num turno real (cenário AC-05): rota
+`support → knowledge`, resposta com fonte, **US$ 0,023 e 8 chamadas** (2 Haiku, 6 Sonnet). Para rodar:
+`LLM_PROVIDER=anthropic python -m evals.run_evals --out evals/results/live.json` e depois `python scripts/fill_readme.py`.
 <!-- eval-live:end -->
 
 ### Juiz LLM (Opus 5.5) e concordância com rótulo humano
 
 <!-- judge:begin -->
-_Roda sobre o resultado ao vivo; entra no mesmo commit pós-relógio._
+**Não rodado no relógio** (depende do eval ao vivo). Calibração pronta: 20 respostas com rótulo humano
+(10 fiéis, 10 alucinações plausíveis) em `evals/judge_calibration.jsonl`. Para rodar:
+`LLM_PROVIDER=anthropic python -m evals.judge evals/results/live.json` (juiz `claude-opus-5-5`, effort medium).
 <!-- judge:end -->
 
 ## 6. Memória, HITL e resiliência
@@ -279,6 +284,7 @@ Spans com `trace_id` em log JSON, tokens e **US$ por request** na própria respo
 | 17:19:56 | 38 | fix(security): /health e log apontam segredos padrão; APP_ENV=production recusa subir com eles |
 | 17:20:23 | 38 | docs: tabela de cobertura da régua com evidência; limitações medidas |
 | 17:24:53 | 43 | fix(check): smoke do container com limite alto e sem rede (o 429 era o rate limiter funcionando); README com eval offline |
+| 17:25:30 | 43 | docs: revisão antes da entrega e status do eval ao vivo |
 
 Do primeiro ao último commit: **43 min**.
 <!-- timeline:end -->
