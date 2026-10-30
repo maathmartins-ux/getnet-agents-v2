@@ -1,8 +1,7 @@
-"""Contrato público da API.
+"""Contrato público da API — Getnet Multi-Agent Support.
 
-Congelado no commit do contrato (minuto ~5): forks NÃO alteram este arquivo — ele está em
-`frozen` no OWNERSHIP.json. Campo novo exige decisão da sessão principal, porque todo fork,
-teste e eval depende desta forma.
+Congelado no commit da spec: forks NÃO alteram este arquivo (está em `frozen` no OWNERSHIP.json).
+Campo novo exige decisão da sessão principal, porque todo fork, teste e eval depende desta forma.
 """
 from __future__ import annotations
 
@@ -10,12 +9,29 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+# Intenções do router. "blocked" é atribuída pelo guardrail, nunca pelo router.
+Intent = Literal["product_question", "account_data", "technical_support", "general_info",
+                 "human_request", "out_of_scope", "blocked"]
+AgentName = Literal["knowledge", "support", "escalation"]
+AgentStatus = Literal["ok", "insufficient", "error"]
+
 
 class ChatRequest(BaseModel):
+    """Payload do enunciado: {"message", "user_id"}.
+
+    `user_id` do corpo só vale com AUTH_MODE=demo (marcado identity_verified=false).
+    Com AUTH_MODE=required a identidade vem exclusivamente do Bearer token.
+    """
     message: str = Field(min_length=1, max_length=4000)
+    user_id: str | None = Field(default=None, max_length=64)
     conversation_id: str | None = Field(default=None, max_length=64)
-    # Só vale com AUTH_REQUIRED=false (dev/eval em processo). Com auth, a identidade vem do token.
-    user_id: str | None = None
+
+
+class RouterDecision(BaseModel):
+    intent: Intent
+    plan: list[AgentName]
+    language: Literal["pt", "en"]
+    confidence: float = Field(ge=0, le=1)
 
 
 class ToolCall(BaseModel):
@@ -45,8 +61,11 @@ class Usage(BaseModel):
 class ChatResponse(BaseModel):
     trace_id: str
     conversation_id: str
+    user_id: str
+    identity_verified: bool
     answer: str
     intent: str
+    confidence: float = 1.0
     route: list[str]
     replans: list[str] = Field(default_factory=list)
     language: Literal["pt", "en"] = "pt"

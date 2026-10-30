@@ -1,8 +1,8 @@
 {
-  "frozen": ["src/app/schemas.py", "OWNERSHIP.json", "docs/SPEC.md"],
+  "frozen": ["src/app/schemas.py", "OWNERSHIP.json", "docs/SPEC.md", "evals/heldout_blind.jsonl"],
   "forks": {
-    "a": ["data/**", "docs/SOURCES.md"],
-    "b": ["src/app/tools.py", "tests/test_tools.py"],
-    "c": ["evals/cases.jsonl", "evals/judge_calibration.jsonl", "tests/test_scenarios.py", "docs/VIDEO_SCRIPT.md"]
+    "a": ["data/knowledge/**", "docs/SOURCES.md", "evals/retrieval.jsonl", "src/app/ingest.py", "tests/test_ingest.py"],
+    "b": ["src/app/tools.py", "data/crm/**", "tests/test_tools.py"],
+    "c": ["evals/cases.jsonl", "evals/judge_calibration.jsonl", "docs/VIDEO_SCRIPT.md", "docs/EVAL_STRATEGY.md"]
   }
 }
